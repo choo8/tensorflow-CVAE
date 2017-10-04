@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
 
+import utils
+
 # Latent-feature discriminative model (M1)
 class M1(object):
 	def __init__ (self, x_dim, z_dim):
@@ -99,17 +101,4 @@ class M1(object):
 				[sample] = sess.run([self.decoder_xhat], feed_dict={self.x: x[0:25, :]})
 
 				if plot and (epoch % 10 == 0):
-					f, ax = plt.subplots(1, 2)
-					original = np.zeros((28 * 5, 28 * 5))
-					reconstructed = np.zeros((28 * 5, 28 * 5))
-
-					for i in range(5):
-						for j in range(5):
-							original[i * 28: (i + 1) * 28, j * 28: (j + 1) * 28] = x[i * 5 + j, :].reshape(28, 28)
-							reconstructed[i * 28: (i + 1) * 28, j * 28: (j + 1) * 28] = sample[i * 5 + j, :].reshape(28, 28)
-					
-					ax[0].imshow(original, cmap="gray")
-					ax[0].set(title="Original Images")
-					ax[1].imshow(reconstructed, cmap="gray")
-					ax[1].set(title="Reconstructed Images")
-					plt.show()
+					utils.plot_meshgrid(x[0:25, :], sample)
