@@ -1,7 +1,10 @@
+import tensorflow as tf
+import imageio
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_meshgrid(x_original, x_reconstructed):
+def plot_meshgrid(x_original, x_reconstructed, epoch):
 	f, ax = plt.subplots(1, 2)
 	original = np.zeros((28 * 5, 28 * 5))
 	reconstructed = np.zeros((28 * 5, 28 * 5))
@@ -13,6 +16,32 @@ def plot_meshgrid(x_original, x_reconstructed):
 	
 	ax[0].imshow(original, cmap="gray")
 	ax[0].set(title="Original Images")
+	ax[0].axis('off')
 	ax[1].imshow(reconstructed, cmap="gray")
 	ax[1].set(title="Reconstructed Images")
-	plt.show()
+	ax[1].axis('off')
+	plt.suptitle("Epoch " + str(epoch))
+
+	# Save plot to make GIF
+	plt.savefig('temp/Epoch ' + str(epoch))
+
+def create_gif(output_filename):
+	filenames = os.listdir(os.path.join(os.getcwd(), 'temp'))
+	filenames = sorted(filenames, key=lambda x: x[6])
+	images = []
+
+	for filename in filenames:
+		images.append(imageio.imread(os.path.join('temp', filename)))
+
+	kwargs = {'fps': 1}
+	imageio.mimwrite(output_filename, images, 'GIF-PIL', **kwargs)
+
+def one_hot_tensor(label, y_dim, num_batch):
+	indices = []
+	values = []
+
+	for i in range(num_batch):
+		indices = indices + [[i, label]]
+		values = values + [1.0]
+
+	return tf.sparse_tensor_to_dense(tf.SparseTensor(indices=indices, values=values, shape=[num_batch, y_dim]))
