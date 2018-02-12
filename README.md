@@ -5,4 +5,5 @@ While learning more about CVAEs, I decided to attempt to replicate some of the r
 
 ## References
 [1] [Semi-Supervised Learning with Deep Generative Models](https://arxiv.org/abs/1406.5298) by Kingma et al. </br>
-[2] https://github.com/saemundsson/semisupervised_vae
+[2] https://github.com/saemundsson/semisupervised_vae </br>
+[3] https://github.com/Gordonjo/generativeSSL
