@@ -1,30 +1,51 @@
-import data.mnist as mnist #https://github.com/dpkingma/nips14-ssl
+import data.mnist as mnist  # https://github.com/dpkingma/nips14-ssl
 from models import M1
-import matplotlib.pyplot as plt
+import numpy as np
+import utils
+import argparse
+import tensorflow as tf
+
 
 def main():
-	z_dim = 50
-	epochs = 100
-	learning_rate = 0.0003
-	batch_size = 50
+    # Use argparse to decide if user wants to re-train VAE
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-train", action='store_true')
+    args = parser.parse_args()
 
-	mnist_path = 'mnist/mnist_28.pkl.gz'
-	#Uses anglpy module from original paper (linked at top) to load the dataset
-	train_x, train_y, valid_x, valid_y, test_x, test_y = mnist.load_numpy(mnist_path, binarize_y=True)
+    z_dim = 50
+    epochs = 500
+    learning_rate = 0.0003
+    batch_size = 50
 
-	x_train, y_train = train_x.T, train_y.T
-	x_valid, y_valid = valid_x.T, valid_y.T
-	x_test, y_test = test_x.T, test_y.T
+    mnist_path = 'mnist/mnist_28.pkl.gz'
+    # Uses anglpy module from original paper (linked at top) to load the dataset
+    train_x, train_y, valid_x, valid_y, test_x, test_y = mnist.load_numpy(mnist_path, binarize_y=True)
+    x_all = np.concatenate([train_x.T, valid_x.T, test_x.T], axis=0)
+    y_all = np.concatenate([train_y.T, valid_y.T, test_y.T], axis=0)
 
-	x_dim = x_train.shape[1]
-	y_dim = y_train.shape[1]
+    x_dim = x_all.shape[1]
 
-	print(x_train.shape)
-	#plt.imshow(x_train[0, :].reshape((28, 28)), cmap="gray")
-	#plt.show()
+    # Visualize how results change over time in the form of a GIF
+    utils.create_gif("M1_model.gif")
 
-	vae = M1(x_dim=x_dim, z_dim=z_dim)
-	vae.train(x=x_train, epochs=epochs, batch_size=batch_size, learning_rate=learning_rate, plot=True)
+    # Specify model path and setup VAE object
+    M1_model_path = "./model/VAE.ckpt"
+    vae = M1(x_dim=x_dim, z_dim=z_dim)
+
+    # Train if user specifies with keyword
+    if args.train:
+        vae.train(x=x_all, epochs=epochs, batch_size=batch_size, learning_rate=learning_rate, plot=True)
+
+    # Visualize the latent space
+    tf.reset_default_graph()
+    with vae.session:
+        vae.saver.restore(vae.session, M1_model_path)
+        [sample, latent] = vae.session.run([vae.decoder_xhat, vae.z], feed_dict={vae.x: x_all, vae.phase: True})
+
+        # Plot meshgrid at Epoch 500
+        utils.plot_meshgrid(x_all[0:25,:], sample[0:25,:], epochs)
+
 
 if __name__ == "__main__":
-	main()
+    main()
+
